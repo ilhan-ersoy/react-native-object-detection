@@ -175,6 +175,43 @@ function TabBarMenuFocused({size}) {
 
 }
 
+
+function LeftArrow({ size, color }) {
+    return (
+        <Svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={size}
+            height={size}
+            fill={color}
+            viewBox="0 0 16 16"
+        >
+            <Path
+                fillRule="evenodd"
+                stroke={color}
+                strokeWidth={1}
+                d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
+            ></Path>
+        </Svg>
+    );
+}
+
+function Profile({size}) {
+    return (
+        <Svg
+            width={size}
+            height={size}
+            viewBox="0 0 20 21"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <Path
+                d="M4.437 1.892h11.127c-.062-.783-.52-1.204-1.363-1.204H5.79c-.835 0-1.3.421-1.353 1.204zm-1.793 2.53h14.712c-.123-.834-.545-1.309-1.476-1.309H4.12c-.932 0-1.353.475-1.476 1.31zm.949 16.181h12.805c1.89 0 2.883-.984 2.883-2.856V8.712c0-1.88-.993-2.857-2.883-2.857H3.593C1.694 5.855.71 6.831.71 8.712v9.035c0 1.88.984 2.857 2.883 2.857zm.105-1.722c-.817 0-1.265-.43-1.265-1.283V8.853c0-.853.448-1.275 1.265-1.275h12.595c.809 0 1.266.422 1.266 1.275v8.745c0 .852-.457 1.283-1.266 1.283h-1.169c-.773-1.75-2.742-2.936-5.089-2.936-2.338 0-4.306 1.187-5.089 2.936H3.698zm6.337-4.201c1.53.017 2.716-1.284 2.716-2.962 0-1.6-1.195-2.918-2.716-2.918-1.512 0-2.716 1.318-2.707 2.918 0 1.678 1.187 2.944 2.707 2.962z"
+                fill="#fff"
+            />
+        </Svg>
+    )
+}
+
 export {
     LoginLogo,
     LoginIcon,
@@ -183,6 +220,8 @@ export {
     HomeLogo,
     Camera,
     TabBarMenu,
-    TabBarMenuFocused
+    TabBarMenuFocused,
+    LeftArrow,
+    Profile
 }
 

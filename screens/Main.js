@@ -1,12 +1,18 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {View, Text, Button, StyleSheet, SafeAreaView, TextInput, Image, TouchableOpacity} from "react-native";
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from "./Home";
-import {TabBarMenu, TabBarMenuFocused} from "../Icons";
-
+import {Camera, Profile, TabBarMenu, TabBarMenuFocused} from "../Icons";
+import CameraScreen from "./Camera";
+import { useRoute } from '@react-navigation/native';
+import {useDispatch, useSelector} from "react-redux";
+import {setUser} from "../Redux/authSlice";
 
 const SettingsScreen = () => {
+
+
+
     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <Text>Settings!</Text>
@@ -16,6 +22,11 @@ const SettingsScreen = () => {
 const Tab = createBottomTabNavigator();
 
 const MainScreen = ({ navigation }) => {
+
+    const user = useSelector(state => state.auth.user);
+
+    console.log("giris yapan user:", user)
+
     return (
         <Tab.Navigator
             screenOptions={{
@@ -30,7 +41,8 @@ const MainScreen = ({ navigation }) => {
                     borderWidth:0,
                     elevation: 0,   // for Android
                     borderTopWidth:0,
-                    height:75,
+                    height:60,
+                    marginHorizontal:20
             },
             }}>
             <Tab.Screen
@@ -39,9 +51,21 @@ const MainScreen = ({ navigation }) => {
                 options={{
                     tabBarIcon: ({ focused, size, color }) => {
                         if (!focused) {
-                            return  <TabBarMenuFocused size={50} />
+                            return  <TabBarMenuFocused size={25} />
                         }
-                        return <TabBarMenu size={50} />
+                        return <TabBarMenu size={25} />
+                    }}
+                }
+            />
+            <Tab.Screen
+                name="Camera"
+                component={CameraScreen}
+                options={{
+                    tabBarIcon: ({ focused, size, color }) => {
+                        if (!focused) {
+                            return  <Camera width={25} height={25}/>
+                        }
+                        return  <Camera width={25} height={25}/>
                     }}
                 }
             />
@@ -51,9 +75,9 @@ const MainScreen = ({ navigation }) => {
                 options={{
                     tabBarIcon: ({ focused, size, color }) => {
                         if (!focused) {
-                            return  <TabBarMenuFocused size={50} />
+                            return  <Profile size={23} />
                         }
-                        return <TabBarMenu size={50} />
+                        return <Profile size={23} />
                     }}
                 }
             />

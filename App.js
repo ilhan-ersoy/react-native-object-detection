@@ -8,31 +8,13 @@ import RegisterScreen from "./screens/Register";
 import MainScreen from "./screens/Main";
 import {useState} from "react";
 import ObjectScreen from "./screens/Object";
+import CameraScreen from "./screens/Camera";
+
+import { useRoute } from '@react-navigation/native';
+import {Provider, useDispatch} from "react-redux";
+import store from "./Redux/store";
 
 
-function ProfileScreen({ navigation }) {
-    return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Button
-                title="Go to Notifications"
-                onPress={() => navigation.navigate('Notifications')}
-            />
-            <Button title="Go back" onPress={() => navigation.goBack()} />
-        </View>
-    );
-}
-
-function NotificationsScreen({ navigation }) {
-    return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Button
-                title="Go to Settings"
-                onPress={() => navigation.navigate('Settings')}
-            />
-            <Button title="Go back" onPress={() => navigation.goBack()} />
-        </View>
-    );
-}
 
 function SettingsScreen({ navigation }) {
     return (
@@ -45,6 +27,9 @@ function SettingsScreen({ navigation }) {
 const Stack = createStackNavigator();
 
 function MyStack() {
+
+
+
     return (
         <Stack.Navigator
             screenOptions={{
@@ -55,16 +40,22 @@ function MyStack() {
             <Stack.Screen name="Main" component={MainScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Objects" component={ObjectScreen} />
+            <Stack.Screen name="Camera" component={CameraScreen} />
         </Stack.Navigator>
     );
 }
 
 export default function App() {
 
+
     return (
-        <NavigationContainer style={{position: "relative"}}>
-            <MyStack/>
-        </NavigationContainer>
+        <Provider store={store}>
+            <NavigationContainer style={{position: "relative"}}>
+                <MyStack/>
+            </NavigationContainer>
+        </Provider>
+
+
     );
 }
 

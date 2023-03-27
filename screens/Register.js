@@ -1,26 +1,37 @@
 import React, {useState} from "react";
 import {View, Text, Button, StyleSheet, SafeAreaView, TextInput, Image, TouchableOpacity, LogBox} from "react-native";
 import {LoginLogo} from "../Icons";
-
-
-
+import Spinner from "react-native-loading-spinner-overlay";
+import {useDispatch, useSelector} from "react-redux";
+import {setUser} from "../Redux/authSlice";
 
 
 const RegisterScreen = ({ navigation }) => {
     const [firstName, setFirstName] = useState("")
     const [mail, setMail] = useState("")
     const [password, setPassword] = useState("")
+    const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch();
+
+    const user = useSelector(state => state.auth.user);
+
+    const cleanUp = () => {
+        setFirstName("")
+        setMail("")
+        setPassword("")
+    }
+
+    console.log("user status:",user)
 
     const handleSignup = () => {
+        setLoading(true)
         let myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
 
         let raw = JSON.stringify({
-            "first_name": "asdas",
-            "last_name": "erdasdasds",
-            "email": "enes@easdasdrs.com",
-            "password": "eneasdasdasdasd.",
-            "phone": "123456789",
+            "name": firstName,
+            "email": mail,
+            "password": password,
             "user_type": "USER"
         });
 
@@ -33,9 +44,18 @@ const RegisterScreen = ({ navigation }) => {
 
         fetch("http://localhost:8080/users/signup", requestOptions)
             .then(response => response.text())
-            .then(result => console.log(result))
-            .catch(error => console.log('error', error));
+            .then(result => {
+                console.log(result)
+                dispatch(setUser(result))
+                setLoading(false)
+                navigation.navigate("Login")
+            })
+            .catch(error => {
+                console.log('error', error)
+                setLoading(false)
+            });
     }
+
 
     return (
         <SafeAreaView style={styles.container}>
@@ -46,12 +66,16 @@ const RegisterScreen = ({ navigation }) => {
                         VISION AL APP
                     </Text>
                 </View>
+                <Spinner
+                    visible={loading}
+                />
                 <View style={styles.LoginContainer}>
                     <View>
                         <Text style={styles.label}>
                             İsim
                         </Text>
                         <TextInput
+                            autoCapitalize={"none"}
                             onChangeText={(text) => setFirstName(text)}
                             style={styles.input}
                             value={firstName}
@@ -63,6 +87,8 @@ const RegisterScreen = ({ navigation }) => {
                             Mail
                         </Text>
                         <TextInput
+                            autoCapitalize={"none"}
+
                             onChangeText={(text) => setMail(text)}
                             style={styles.input}
                             value={mail}
@@ -74,6 +100,8 @@ const RegisterScreen = ({ navigation }) => {
                             Şifre
                         </Text>
                         <TextInput
+                            autoCapitalize={"none"}
+
                             onChangeText={(text) => setPassword(text)}
                             style={styles.input}
                             value={password}

@@ -11,7 +11,7 @@ const HomeScreen = ({navigation}) => {
 
     return (
         <SafeAreaView style={{ flex: 1, justifyContent: 'center', backgroundColor:"#1e1e1e" }}>
-            <Header navigation={navigation}/>
+            <Header navigation={navigation} />
         </SafeAreaView>
     );
 }
