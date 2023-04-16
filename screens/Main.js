@@ -3,19 +3,45 @@ import {View, Text, Button, StyleSheet, SafeAreaView, TextInput, Image, Touchabl
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from "./Home";
-import {Camera, Profile, TabBarMenu, TabBarMenuFocused} from "../Icons";
+import {Camera, CameraFocused, Profile, ProfileFocused, TabBarMenu, TabBarMenuFocused} from "../Icons";
 import CameraScreen from "./Camera";
 import { useRoute } from '@react-navigation/native';
 import {useDispatch, useSelector} from "react-redux";
 import {setUser} from "../Redux/authSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import ProfileScreen from "./Profile";
 
 const SettingsScreen = () => {
 
+    const removeUserFromStorage = async () => {
+        try {
+            await AsyncStorage.removeItem('USER');
+            return true;
+        }
+        catch(exception) {
+            return false;
+        }
+    }
+
+    const getUserFromStorage = async () => {
+        try {
+            const value = await AsyncStorage.getItem('USER');
+            if (value !== null) {
+                // We have data!!
+                console.log(value);
+            } else {
+                console.log("data doesnt exits.")
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    };
 
 
     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text>Settings!</Text>
+            <Button title={"exit"} onPress={() => removeUserFromStorage()}/>
+            <Button title={"test user"} onPress={() => getUserFromStorage()} />
         </View>
     );
 }
@@ -62,22 +88,24 @@ const MainScreen = ({ navigation }) => {
                 component={CameraScreen}
                 options={{
                     tabBarIcon: ({ focused, size, color }) => {
-                        if (!focused) {
-                            return  <Camera width={25} height={25}/>
+                        if (focused) {
+                            return <CameraFocused size={25} />
+                        } else {
+                            return <Camera size={25} />
                         }
-                        return  <Camera width={25} height={25}/>
                     }}
                 }
             />
             <Tab.Screen
-                name="Settings"
-                component={SettingsScreen}
+                name="Profile"
+                component={ProfileScreen}
                 options={{
                     tabBarIcon: ({ focused, size, color }) => {
-                        if (!focused) {
-                            return  <Profile size={23} />
+                        if (focused) {
+                            return <ProfileFocused size={25} />
+                        } else {
+                            return <Profile size={25} />
                         }
-                        return <Profile size={23} />
                     }}
                 }
             />

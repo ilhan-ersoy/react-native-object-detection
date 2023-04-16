@@ -1,4 +1,5 @@
-import React, {useState} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, {useEffect, useState} from "react";
 import {
     View,
     Text,
@@ -8,88 +9,103 @@ import {
     TextInput,
     Image,
     TouchableOpacity,
-    ScrollView
+    ScrollView, FlatList
 } from "react-native";
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Header from "../components/Main/Header";
-import apiRequest from "../apiRequest";
-import {LeftArrow} from "../Icons";
+import {DeleteTest, Detected, GoTest, LeftArrow} from "../Icons";
+import AnimatedLoader from "react-native-animated-loader";
 
 const ObjectScreen = ({route, navigation}) => {
 
-    const { itemId } = route.params;
+    const { itemId, token } = route.params;
+    const [loading, setLoading] = useState(false)
 
-    console.log(itemId)
+    const [content, setContent] = useState({});
+    const getObjectDetails = () => {
+        setLoading(true)
+        let myHeaders = new Headers();
+        myHeaders.append(
+            "token",
+            token
+        );
 
-    callGoogleVIsionApi = async (base64) => {
-        let googleVisionRes = await fetch("https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDqiXgi_9gVoWlXHE7wZDPSBE40wwPtAmw", {
-            method: 'POST',
-            body: JSON.stringify({
-                "requests": [
-                    {
-                        "image": {
-                            "content": base64
-                        },
-                        features: [
-                            { type: "LABEL_DETECTION", maxResults: 10 },
-                            { type: "LANDMARK_DETECTION", maxResults: 5 },
-                            { type: "FACE_DETECTION", maxResults: 5 },
-                            { type: "LOGO_DETECTION", maxResults: 5 },
-                            { type: "TEXT_DETECTION", maxResults: 5 },
-                            { type: "DOCUMENT_TEXT_DETECTION", maxResults: 5 },
-                            { type: "SAFE_SEARCH_DETECTION", maxResults: 5 },
-                            { type: "IMAGE_PROPERTIES", maxResults: 5 },
-                            { type: "CROP_HINTS", maxResults: 5 },
-                            { type: "WEB_DETECTION", maxResults: 5 }
-                        ],
-                    }
-                ]
+        let requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+            body: "",
+            redirect: 'follow'
+        };
+
+        fetch(`http://localhost:8080/object/get/${itemId}`, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                setContent(result)
+                setTimeout(() => setLoading(false),1000)
             })
+            .catch(error => {
+                setLoading(false)
+                console.log(error)
+            });
+    }
+
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            getObjectDetails()
         });
 
-        await googleVisionRes.json()
-            .then(googleVisionRes => {
-                console.log(googleVisionRes)
-                if (googleVisionRes) {
-                    this.setState(
-                        {
-                            loading: false,
-                            googleVisionDetetion: googleVisionRes.responses[0]
-                        }
-                    )
-                    console.log('this.is response', this.state.googleVisionDetetion);
-                }
-            }).catch((error) => { console.log(error) })
-    }
+        return unsubscribe;
+    }, [navigation]);
+
+
 
     return (
         <SafeAreaView style={{ flex: 1, justifyContent: 'center', backgroundColor:"#1e1e1e" }}>
             <View style={styles.container}>
-
                 <View style={styles.header}>
-
                     <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.5}>
-                        <LeftArrow size={24} color={"#fff"}/>
+                        <LeftArrow size={24} color={"#fff"} />
                     </TouchableOpacity>
                 </View>
 
+                <AnimatedLoader
+                    visible={loading}
+                    overlayColor="#1e1e1e"
+                    source={require("./loader.json")}
+                    animationStyle={styles.lottie}
+                    speed={2}
+                >
+                </AnimatedLoader>
+                <View style={{alignItems:"center"}}>
+                    <Text style={{fontWeight:"bold",fontSize:32,color:"#fff",marginVertical:1}}>
+                        {content.name}
+                    </Text>
+                </View>
                 <View style={styles.content}>
                     <View style={{maxHeight:240}}>
-                        <Image source={{uri:"https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/ba/29/5c/img-worlds-of-adventure.jpg?w=1200&h=-1&s=1"}} style={styles.objectImg} />
-                        <Text style={{color:"#fff",fontSize:22,marginVertical:4,fontWeight:"bold"}}>
-                            Detected Objects
-                        </Text>
-                           <View style={styles.contentContainer}>
-                               <ScrollView>
-                                   {Array.from(Array(4), (_, i) => (
-                                       <View key={i} style={{flexDirection:"row",columnGap:30,alignItems: "center",margin:10,justifyContent:"center",paddingRight:40,backgroundColor: "#1e1e1e",padding:10,borderRadius:15,}}>
-                                           <Text style={{fontSize:16,color:"white"}}>
-                                               {i+1}     Building
-                                           </Text>
-                                       </View>
-                                   ))}
-                               </ScrollView>
+
+                        <Image source={{uri:content.image}} style={styles.objectImg} />
+                        <View style={styles.contentContainer}>
+                               <FlatList
+                                   data={content.labels}
+                                   renderItem={({item, index}) =>
+                                       <>
+                                           <View style={{position:"absolute",backgroundColor:"#2c2c2c",padding:2,zIndex:99,borderRadius:30,left:1}}>
+                                               <TouchableOpacity style={{backgroundColor:"#2c2c2c",padding:10,borderRadius:30}} onPress={() => navigation.navigate("Objects", {
+                                                   itemId:item.ID,
+                                                   token:user.token
+                                               })} activeOpacity={0.5}>
+                                                   <Detected size={20} />
+                                               </TouchableOpacity>
+                                           </View>
+                                           <View style={{flexDirection:"row",columnGap:30,alignItems: "center",margin:10,justifyContent:"center",paddingRight:40,backgroundColor: "#1e1e1e",padding:20,borderRadius:15,}}>
+                                               <Text style={{fontSize:22,color:"white"}}>
+                                                   {item}
+                                               </Text>
+                                           </View>
+                                       </>
+                                   }
+                                   keyExtractor={object => object.id}
+                               />
                            </View>
                     </View>
                 </View>
@@ -135,7 +151,8 @@ const styles = StyleSheet.create({
         shadowColor: '#171717',
         shadowOpacity: 1,
         shadowRadius: 3,
-        marginTop:10
+        marginTop:10,
+        position:"relative"
     }
 })
 

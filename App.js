@@ -13,6 +13,7 @@ import CameraScreen from "./screens/Camera";
 import { useRoute } from '@react-navigation/native';
 import {Provider, useDispatch} from "react-redux";
 import store from "./Redux/store";
+import ProfileScreen from "./screens/Profile";
 
 
 
@@ -37,10 +38,11 @@ function MyStack() {
             }}>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="Main" component={MainScreen} />
+            <Stack.Screen name="Main" options={{gestureEnabled:false}} component={MainScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Objects" component={ObjectScreen} />
             <Stack.Screen name="Camera" component={CameraScreen} />
+
         </Stack.Navigator>
     );
 }

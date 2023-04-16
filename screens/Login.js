@@ -1,27 +1,36 @@
-import React, { useState } from "react";
-import { View, Text, Button, StyleSheet, SafeAreaView, TextInput, Image, TouchableOpacity } from "react-native";
+import React, {useEffect, useState} from "react";
+import {View, Text, Button, StyleSheet, SafeAreaView, TextInput, Image, TouchableOpacity, Alert} from "react-native";
 import { LoginIcon, LoginLogo, PasswordIcon } from "../Icons";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../Redux/authSlice";
 import Spinner from 'react-native-loading-spinner-overlay';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import AnimatedLoader from "react-native-animated-loader";
 
 
 
 const LoginScreen = ({ navigation }) => {
 
-
     const [mail, setMail] = useState("")
     const [password, setPassword] = useState("")
     const dispatch = useDispatch()
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState("")
+
+    // useEffect(() => {
+    //     return navigation.addListener('focus', () => {
+    //         const user = getUserFromStorage()
+    //         console.log("USERRR*****", user)
+    //         if (user) {
+    //             navigation.navigate("Home")
+    //         }
+    //     });
+    // }, [navigation]);
 
     const saveUserInStore = async (user) => {
         try {
             await AsyncStorage.setItem(
                 'USER',
-                user,
+                JSON.stringify(user),
             );
         } catch (error) {
             console.log(error)
@@ -33,18 +42,29 @@ const LoginScreen = ({ navigation }) => {
             const value = await AsyncStorage.getItem('USER');
             if (value !== null) {
                 // We have data!!
-                console.log(value);
+                return value
             }
         } catch (error) {
             console.log(error)
         }
     };
 
-    //console.log(loading)
+    const alert = (alertTitle,alertMessage) =>
+        Alert.alert(alertMessage, alertMessage, [
+            {
+                text: 'Cancel',
+                onPress: () => console.log('Cancel Pressed'),
+                style: 'cancel',
+            },
+            {text: 'OK', onPress: () => console.log('OK Pressed')},
+        ]);
+
     const handleLogin = () => {
-        //navigation.navigate("Main")
+
+        setLoading(true)
         let myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
+
         let raw = JSON.stringify({
             "email": mail,
             "password": password
@@ -57,43 +77,48 @@ const LoginScreen = ({ navigation }) => {
             redirect: 'follow'
         };
 
-        setLoading(true)
-        fetch("http://localhost:8080/users/login", requestOptions)
+        fetch("http://192.168.0.4:8080/users/login", requestOptions)
             .then(response => response.json())
             .then(result => {
                 if (result.error) {
-                    setError(error)
+                    console.log("error")
                 } else {
-                    navigation.navigate("Main")
                     dispatch(setUser(result))
+                    saveUserInStore(result).then(r => {})
+                    setLoading(false)
+                    navigation.navigate("Main")
                 }
             })
             .catch(error => {
-                console.log('error', error)
-                console.log(mail, password)
+                console.log("Login Error!")
+                console.log(error)
             });
 
     }
 
-
-
+    const test = () => {
+        fetch('https://jsonplaceholder.typicode.com/todos/1')
+            .then(response => response.json())
+            .then(json => console.log(json))
+    }
     return (
         <View style={styles.container}>
             <View style={{ flex: 1 }}>
                 <View style={styles.img}>
-
-                    <Text style={{ fontSize: 45, color: "#fff", marginVertical: 10, fontWeight: "700" }}>
-                        App
+                    <LoginLogo />
+                    <Text style={{fontSize:28, color:"#fff", marginVertical: 10, fontWeight:"900"}}>
+                        LOGIN
                     </Text>
-
-                    {
-                        !loading
-                        &&
-                        <Spinner
-                            visible={loading}
-                        />
-                    }
                 </View>
+
+                {/*<AnimatedLoader*/}
+                {/*    visible={loading}*/}
+                {/*    overlayColor="#1e1e1e"*/}
+                {/*    source={require("./loader.json")}*/}
+                {/*    animationStyle={styles.lottie}*/}
+                {/*    speed={2}*/}
+                {/*>*/}
+                {/*</AnimatedLoader>*/}
 
                 <View style={styles.LoginContainer}>
                     <View>
@@ -106,7 +131,6 @@ const LoginScreen = ({ navigation }) => {
                             </View>
                             <TextInput
                                 autoCapitalize={"none"}
-
                                 onChangeText={(text) => setMail(text)}
                                 style={styles.input}
                                 value={mail}
@@ -128,7 +152,7 @@ const LoginScreen = ({ navigation }) => {
                                 style={styles.input}
                                 value={password}
                                 placeholderTextColor={"#f2f2f2"}
-                                secureTextEntry={false}
+                                secureTextEntry={true}
                             />
                         </View>
                     </View>
@@ -137,6 +161,8 @@ const LoginScreen = ({ navigation }) => {
                             GİRİŞ YAP
                         </Text>
                     </TouchableOpacity>
+
+                    <Button title="test" onPress={() => test()} />
 
                     <TouchableOpacity onPress={() => navigation.navigate("Register")} style={styles.loginButton} activeOpacity={0.6}>
                         <Text style={{ fontSize: 16, fontWeight: "bold", justifyContent: "center", color: "#fff" }}>
@@ -159,14 +185,18 @@ const styles = StyleSheet.create({
         flex: 3,
         justifyContent: "center",
         alignItems: "center",
-        marginTop: 55
+        marginTop: 55,
+    },
+    lottie:{
+
     },
     LoginContainer: {
         flex: 8,
         paddingVertical: 12,
         paddingHorizontal: 10,
         marginTop: 20,
-        rowGap: 10
+        rowGap: 10,
+        marginRight:10
     },
     input: {
         width: "100%",
