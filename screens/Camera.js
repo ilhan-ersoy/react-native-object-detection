@@ -1,104 +1,151 @@
-import React, {useState} from "react";
-import {View, Text, Button, StyleSheet, SafeAreaView, TextInput, Image, TouchableOpacity} from "react-native";
-import { Camera, CameraType } from 'expo-camera';
-import * as FileSystem from 'expo-file-system';
-import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useState } from 'react'
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  SafeAreaView,
+  TextInput,
+  Image,
+  TouchableOpacity
+} from 'react-native'
+import { Camera, CameraType } from 'expo-camera'
+import * as ImagePicker from 'expo-image-picker'
+import axios from 'axios'
+import { useSelector } from 'react-redux'
+import * as ImageManipulator from 'expo-image-manipulator'
 
+const CameraScreen = ({ navigation }) => {
+  const user = useSelector(state => state.auth.user)
+  const [image, setImage] = useState(null)
+  const [objects, setObjects] = useState([])
 
-const CameraScreen = ({navigation}) => {
+  const [cameraRef, setCameraRef] = useState(null)
+  const [photo, setPhoto] = useState(null)
 
-    const [type, setType] = useState(CameraType.back);
-    const [permission, requestPermission] = Camera.useCameraPermissions();
+  const takePicture = async () => {
+    if (cameraRef) {
+      const photo = await cameraRef.takePictureAsync()
+      setPhoto(photo)
+    }
+  }
 
-    let permissionResponsePromise = Camera.requestCameraPermissionsAsync();
+  const convertToBase64 = async () => {
+    const manipResult = await ImageManipulator.manipulateAsync(
+      photo.uri,
+      [{ resize: { width: 400 } }],
+      { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG, base64: true }
+    )
+  }
 
+  const saveImage = () => {
+    var myHeaders = new Headers()
+    myHeaders.append(
+      'token',
+      user.token      
+    )
 
+    myHeaders.append('Content-Type', 'application/json')
 
-    function toggleCameraType() {
-        setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
+    var raw = JSON.stringify({
+      name: user.user_id,
+      user_id: user.user_id,
+      image: image,
+      labels: [...objects]
+    })
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
     }
 
-    // const base64 = FileSystem.readAsStringAsync("https://www.timeoutdubai.com/cloud/timeoutdubai/2021/09/11/udHvbKwV-IMG-Dubai-UAE-1.jpg", { encoding: 'base64' });
+    fetch('http://localhost:8080/object-detection', requestOptions)
+      .then(response => response.json())
+      .then(result => console.log(result))
+      .catch(error => console.log('error', error))
+  }
 
+  const selectImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+      base64: true
+    })
 
+    if (!result.canceled) {
+      setImage(`data:image/jpeg;base64,${result.base64}`)
+      const body = {
+        requests: [
+          {
+            image: {
+              content: result.base64
+            },
+            features: [
+              {
+                type: 'OBJECT_LOCALIZATION',
+                maxResults: 50
+              }
+            ]
+          }
+        ]
+      }
 
-
-
-
-    const callGoogleVisionApi = async (base64) => {
-        let googleVisionRes = await fetch("https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDqiXgi_9gVoWlXHE7wZDPSBE40wwPtAmw", {
-            method: 'POST',
-            body: JSON.stringify({
-                "requests": [
-                    {
-                        "image": {
-                            "content": base64
-                        },
-                        features: [
-                            { type: "LABEL_DETECTION", maxResults: 10 },
-                            { type: "LANDMARK_DETECTION", maxResults: 5 },
-                            { type: "FACE_DETECTION", maxResults: 5 },
-                            { type: "LOGO_DETECTION", maxResults: 5 },
-                            { type: "TEXT_DETECTION", maxResults: 5 },
-                            { type: "DOCUMENT_TEXT_DETECTION", maxResults: 5 },
-                            { type: "SAFE_SEARCH_DETECTION", maxResults: 5 },
-                            { type: "IMAGE_PROPERTIES", maxResults: 5 },
-                            { type: "CROP_HINTS", maxResults: 5 },
-                            { type: "WEB_DETECTION", maxResults: 5 }
-                        ],
-                    }
-                ]
-            })
-        });
-
-        await googleVisionRes.json()
-            .then(googleVisionRes => {
-                console.log(googleVisionRes)
-                if (googleVisionRes) {
-                    this.setState(
-                        {
-                            loading: false,
-                            googleVisionDetetion: googleVisionRes.responses[0]
-                        }
-                    )
-                    console.log('this.is response', this.state.googleVisionDetetion);
-                }
-            }).catch((error) => { console.log(error) })
+      axios
+        .post(
+          'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDqiXgi_9gVoWlXHE7wZDPSBE40wwPtAmw',
+          body
+        )
+        .then(response => {
+          const objects =
+            response.data.responses[0].localizedObjectAnnotations.map(
+              object => object.name
+            )
+          setObjects(objects)
+          saveImage()
+        })
+        .catch(error => {
+          console.log(error)
+        })
     }
+  }
 
-    return (
-        <Camera style={styles.camera} type={type}>
-            <View style={styles.buttonContainer}>
-                {/*<TouchableOpacity style={styles.button} onPress={toggleCameraType}>*/}
-                {/*    <Text style={styles.text}>Flip Camera</Text>*/}
-                {/*</TouchableOpacity>*/}
-                <TouchableOpacity onPress={() => callGoogleVisionApi(img)} style={styles.take} activeOpacity={0.5}>
-                    <View>
-                        <Text>
-                            Take
-                        </Text>
-                    </View>
-                </TouchableOpacity>
-            </View>
-        </Camera>
-    );
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      {image && (
+        <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
+      )}
+      {objects.length > 0 && (
+        <Text style={{ marginTop: 10 }}>
+          Objects in the image: {objects.join(', ')}
+        </Text>
+      )}
+      <Button title='Select a photo' onPress={selectImage} />
+      {/* <Button title="Take a photo" onPress={takePicture} /> */}
+    </View>
+
+    // <Camera
+    //   style={{ flex: 1 }}
+    //   type={Camera.Constants.Type.back}
+    //   ref={ref => {
+    //     setCameraRef(ref)
+    //   }}
+    // >
+    //   <View style={{ flex: '1' }}>
+    //     <TouchableOpacity
+    //       style={{ flex: 1, alignSelf: 'flex-end', alignItems: 'center' }}
+    //       onPress={() => takePicture()}
+    //     >
+    //       <Text style={{ fontSize: 18, marginBottom: 10, color: 'white' }}>
+    //         Take picture
+    //       </Text>
+    //     </TouchableOpacity>
+    //   </View>
+    // </Camera>
+  )
 }
 
-const styles = StyleSheet.create({
-    camera: {
-        flex: 1,
-    },
-    take: {
-        flexDirection:"column",
-        justifyContent: "center",
-        alignItems:"center",
-        backgroundColor:"#fff",
-        flex:2
-    },
-    buttonContainer:{
-        flex:1,
-    }
-
-});
-
-export default CameraScreen;
+export default CameraScreen

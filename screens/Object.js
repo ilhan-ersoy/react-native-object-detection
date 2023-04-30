@@ -77,7 +77,7 @@ const ObjectScreen = ({route, navigation}) => {
                 </AnimatedLoader>
                 <View style={{alignItems:"center"}}>
                     <Text style={{fontWeight:"bold",fontSize:32,color:"#fff",marginVertical:1}}>
-                        {content.name}
+                        FOTO
                     </Text>
                 </View>
                 <View style={styles.content}>
