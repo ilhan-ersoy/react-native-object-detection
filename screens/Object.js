@@ -58,6 +58,8 @@ const ObjectScreen = ({route, navigation}) => {
 
 
 
+
+
     return (
         <SafeAreaView style={{ flex: 1, justifyContent: 'center', backgroundColor:"#1e1e1e" }}>
             <View style={styles.container}>

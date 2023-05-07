@@ -32,7 +32,7 @@ const RegisterScreen = ({ navigation }) => {
     setPassword('')
   }
 
-  console.log('user status:', user)
+  // console.log('user status:', user)
 
   const saveUserInStore = async user => {
     try {
@@ -70,7 +70,7 @@ const RegisterScreen = ({ navigation }) => {
         navigation.navigate('Login')
       })
       .catch(error => {
-        console.log('error', error)
+        // console.log('error', error)
         setLoading(false)
       })
   }

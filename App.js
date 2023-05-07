@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {Button, View, Text, Animated, Easing, TouchableOpacity, TouchableWithoutFeedback, StyleSheet} from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from "./screens/Login";
 import LoginScreen from "./screens/Login";
 import RegisterScreen from "./screens/Register";
 import MainScreen from "./screens/Main";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import ObjectScreen from "./screens/Object";
 import CameraScreen from "./screens/Camera";
 
@@ -14,6 +14,8 @@ import { useRoute } from '@react-navigation/native';
 import {Provider, useDispatch} from "react-redux";
 import store from "./Redux/store";
 import ProfileScreen from "./screens/Profile";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {get} from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 
 
@@ -26,6 +28,8 @@ function SettingsScreen({ navigation }) {
 }
 
 const Stack = createStackNavigator();
+
+
 
 function MyStack() {
 
@@ -42,7 +46,6 @@ function MyStack() {
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Objects" component={ObjectScreen} />
             <Stack.Screen name="Camera" component={CameraScreen} />
-
         </Stack.Navigator>
     );
 }

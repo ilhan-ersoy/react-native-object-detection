@@ -48,11 +48,7 @@ const SettingsScreen = () => {
 const Tab = createBottomTabNavigator();
 
 const MainScreen = ({ navigation }) => {
-
     const user = useSelector(state => state.auth.user);
-
-    console.log("giris yapan user:", user)
-
     return (
         <Tab.Navigator
             screenOptions={{

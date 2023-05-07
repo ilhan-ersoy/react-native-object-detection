@@ -126,21 +126,7 @@ const HomeScreen = ({ navigation }) => {
     }
   }
 
-  const selectImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
 
-    if (status !== 'granted') {
-      console.log('Permission denied!')
-      return
-    }
-
-    let result = await ImagePicker.launchCameraAsync()
-
-    if (!result.cancelled) {
-      setImage(result.uri)
-      detectObjects(result.uri)
-    }
-  }
 
   return (
     <SafeAreaView
@@ -155,17 +141,11 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
 
           <View style={{ alignItems: 'center' }}>
-            {/* <Text style={{fontSize: 22, color:"#fff"}}>
-                            <Text>
-                                Welcome
-                            </Text>
-                        </Text>
-                        <Text style={{fontSize: 18, color:"#fff",fontWeight:"bold",marginTop:10}}>
-                            <Text>
-                                {user.name}
-                            </Text>
-                        </Text> */}
+            <Text style={{fontSize:22, color:"white"}}>
+                Welcome, {user && user.name}
+            </Text>
           </View>
+
           <TouchableOpacity
             onPress={() => navigation.navigate('Camera')}
             activeOpacity={0.6}
@@ -202,6 +182,8 @@ const HomeScreen = ({ navigation }) => {
             </Text>
           </View>
         </View>
+
+
 
         <View style={styles.content}>
           <FlatList
