@@ -27,17 +27,6 @@ const LoginScreen = ({navigation}) => {
 
     const [secureText, setSecureText] = useState(true)
 
-
-    // useEffect(() => {
-    //     return navigation.addListener('focus', () => {
-    //         const user = getUserFromStorage()
-    //         console.log("USERRR*****", user)
-    //         if (user) {
-    //             navigation.navigate("Home")
-    //         }
-    //     });
-    // }, [navigation]);
-
     const saveUserInStore = async user => {
         try {
             await AsyncStorage.setItem('USER', JSON.stringify(user))
@@ -104,7 +93,7 @@ const LoginScreen = ({navigation}) => {
         //   "email": "kylianmbappe10@gmail.com",
         //     "password" : "france2018"
         // }
-        fetch('http://localhost:8080/users/login', requestOptions)
+        fetch('http://192.168.0.5:8080/users/login', requestOptions)
             .then(response => response.json())
             .then(result => {
                 if (result.error) {

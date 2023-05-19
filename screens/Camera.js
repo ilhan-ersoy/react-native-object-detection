@@ -1,95 +1,105 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
     Button,
     StyleSheet,
-    SafeAreaView,
-    TextInput,
     Image,
-    TouchableOpacity
-} from 'react-native'
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import axios from 'axios';
+import { useSelector } from 'react-redux';
 
-
-import { Camera, CameraType } from 'expo-camera'
-import * as ImagePicker from 'expo-image-picker'
-import axios from 'axios'
-import { useSelector } from 'react-redux'
-import * as ImageManipulator from 'expo-image-manipulator'
 
 const DetectedObjects = ({ objects, imageWidth, imageHeight }) => {
     return (
-        <View style={{position:"absolute"}}>
-            {objects.map((object, index) => {
+        <View style={{ position: 'absolute' }}>
+            {objects && objects.map((object, index) => {
                 const vertices = object.boundingPoly.normalizedVertices;
                 const x = vertices[0].x * imageWidth;
                 const y = vertices[0].y * imageHeight;
                 const width = (vertices[2].x - vertices[0].x) * imageWidth;
                 const height = (vertices[2].y - vertices[0].y) * imageHeight;
+                let colors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple'];
+
+                if (isNaN(x) || isNaN(y) || isNaN(width) || isNaN(height)) {
+                    console.warn('Invalid coordinates or dimensions:', { x, y, width, height });
+                    return null;
+                }
+
+                let randomIndex = Math.floor(Math.random() * colors.length);
+
                 return (
-                    <View
-                        key={index}
-                        style={{
-                            borderColor: 'red',
-                            borderWidth: 2,
-                            position: 'absolute',
-                            left: x,
-                            top: y,
-                            width: width,
-                            height: height,
-                        }}
-                    />
+                    <View key={index} style={{ position: 'absolute', left: x, top: y }}>
+                        <View
+                            style={{
+                                borderColor: colors[randomIndex],
+                                borderWidth: 2,
+                                width: width,
+                                height: height,
+                            }}
+                        />
+                        <Text
+                            style={{
+                                color: '#fff',
+                                backgroundColor: 'gray',
+                                fontSize: 12,
+                                position: 'absolute',
+                                left: width + 5,
+                                top: 0,
+                            }}
+                        >
+                            {object.name}
+                        </Text>
+                    </View>
                 );
             })}
         </View>
     );
 };
 
+const CameraScreen = () => {
+    const [image, setImage] = useState(null);
+    const [objects, setObjects] = useState([]);
+    const [names, setNames] = useState([]);
+    const user = useSelector(state => state.auth.user);
 
+    useEffect(() => {
+        if (objects && objects.length > 0) {
+            const objectNames = objects.map(object => object.name);
+            setNames(prevNames => [...prevNames, ...objectNames]);
+        }
 
-const CameraScreen = ({ navigation }) => {
-    const user = useSelector(state => state.auth.user)
-    const [rawObjects, setRawObjects] = useState()
-    const [image, setImage] = useState(null)
-    const [objects, setObjects] = useState([])
+    }, [objects]);
 
-    const [photo, setPhoto] = useState(null)
-
-    const convertToBase64 = async () => {
-        const manipResult = await ImageManipulator.manipulateAsync(
-            photo.uri,
-            [{ resize: { width: 400 } }],
-            { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG, base64: true }
-        )
-    }
-
-
-    const selectImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
+    const takePhoto = async () => {
+        setImage(null)
+        setObjects(null)
+        let result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
+            allowsEditing: false,
             aspect: [4, 3],
             quality: 1,
-            base64: true
-        })
+            base64: true,
+        });
 
-        if (!result.canceled) {
-            setImage(`data:image/jpeg;base64,${result.base64}`)
+        if (!result.cancelled) {
+            setImage(`data:image/jpeg;base64,${result.base64}`);
             const body = {
                 requests: [
                     {
                         image: {
-                            content: result.base64
+                            content: result.base64,
                         },
                         features: [
                             {
                                 type: 'OBJECT_LOCALIZATION',
-                                maxResults: 50
-                            }
-                        ]
-                    }
-                ]
-            }
+                                maxResults: 50,
+                            },
+                        ],
+                    },
+                ],
+            };
 
             axios
                 .post(
@@ -97,39 +107,105 @@ const CameraScreen = ({ navigation }) => {
                     body
                 )
                 .then(response => {
-                    setObjects(response.data.responses[0].localizedObjectAnnotations)
-                    // setRawObjects(response.data.responses[0].normalizedVertices[0])
-                    // saveImage()
-                    console.log("objects =>", objects)
+                    setObjects(response.data.responses[0].localizedObjectAnnotations);
                 })
                 .catch(error => {
-                    console.log(error)
-                })
+                    console.log(error);
+                });
         }
+    };
+
+    const selectImage = async () => {
+        setNames([]);
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: false,
+            aspect: [4, 3],
+            quality: 1,
+            base64: true,
+        });
+
+        if (!result.cancelled) {
+            setImage(`data:image/jpeg;base64,${result.base64}`);
+            const body = {
+                requests: [
+                    {
+                        image: {
+                            content: result.base64,
+                        },
+                        features: [
+                            {
+                                type: 'OBJECT_LOCALIZATION',
+                                maxResults: 50,
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            axios
+                .post(
+                    'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDqiXgi_9gVoWlXHE7wZDPSBE40wwPtAmw',
+                    body
+                )
+                .then(response => {
+                    setObjects(response.data.responses[0].localizedObjectAnnotations);
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+        }
+    };
+
+    const refresh = () => {
+        setImage(null)
+        setObjects(null)
+        setNames(null)
     }
 
-
-    objects && objects.map((object) => console.log(object.name))
-
-
     return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={styles.container}>
             {image && (
-                <View style={{position:"relative"}}>
-                    <Image source={{ uri: image }} style={{ width: 400, height: 400 }} />
-                    {/*<DetectedObjects objects={objects} imageWidth={400} imageHeight={400} />*/}
+                <View style={{ position: 'relative' }}>
+                    <Button title="Reset" onPress={() => refresh()} />
+                    <Image source={{ uri: image }} style={styles.image} />
+                    <DetectedObjects objects={objects} imageWidth={400} imageHeight={400} />
+                    <View style={styles.labelContainer}>
+                        {names && names.map((name, index) => (
+                            <Text key={index} style={styles.label}>
+                                {name}
+                            </Text>
+                        ))}
+                    </View>
                 </View>
             )}
-            {/*{objects.length > 0 && (*/}
-            {/*    <Text style={{ marginTop: 10 }}>*/}
-            {/*        Objects in the image: {objects}*/}
-            {/*    </Text>*/}
-            {/*)}*/}
-            <Button title='Select a photo' onPress={selectImage} />
-            {/* <Button title="Take a photo" onPress={takePicture} /> */}
+            <Button title="Take a photo" onPress={takePhoto} />
+            <Button title="Select a photo" onPress={selectImage} />
         </View>
+    );
+};
 
-    )
-}
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    image: {
+        width: 400,
+        height: 400,
+    },
+    labelContainer: {
+        position: 'absolute',
+        left: 100,
+        top: 0,
+    },
+    label: {
+        color: '#fff',
+        backgroundColor: 'gray',
+        fontSize: 12,
+        margin: 4,
+    },
+});
 
-export default CameraScreen
+export default CameraScreen;

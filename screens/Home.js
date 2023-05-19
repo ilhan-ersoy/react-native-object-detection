@@ -126,8 +126,6 @@ const HomeScreen = ({ navigation }) => {
     }
   }
 
-
-
   return (
     <SafeAreaView
       style={{ flex: 1, justifyContent: 'center', backgroundColor: '#1e1e1e' }}
@@ -182,7 +180,6 @@ const HomeScreen = ({ navigation }) => {
             </Text>
           </View>
         </View>
-
 
 
         <View style={styles.content}>
