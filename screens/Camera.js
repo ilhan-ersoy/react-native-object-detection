@@ -67,14 +67,14 @@ const CameraScreen = () => {
     useEffect(() => {
         if (objects && objects.length > 0) {
             const objectNames = objects.map(object => object.name);
-            setNames(prevNames => [...prevNames, ...objectNames]);
+            if (objectNames != null && names != null) {
+                setNames(prevNames => [...prevNames, ...objectNames]);
+            }
         }
 
     }, [objects]);
 
     const takePhoto = async () => {
-        setImage(null)
-        setObjects(null)
         let result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: false,
@@ -108,6 +108,7 @@ const CameraScreen = () => {
                 )
                 .then(response => {
                     setObjects(response.data.responses[0].localizedObjectAnnotations);
+
                 })
                 .catch(error => {
                     console.log(error);
@@ -116,7 +117,7 @@ const CameraScreen = () => {
     };
 
     const selectImage = async () => {
-        setNames([]);
+
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: false,
@@ -150,6 +151,7 @@ const CameraScreen = () => {
                 )
                 .then(response => {
                     setObjects(response.data.responses[0].localizedObjectAnnotations);
+
                 })
                 .catch(error => {
                     console.log(error);
@@ -157,14 +159,18 @@ const CameraScreen = () => {
         }
     };
 
+
     const refresh = () => {
         setImage(null)
-        setObjects(null)
-        setNames(null)
+        setNames([])
     }
+
+
+    console.log(names)
 
     return (
         <View style={styles.container}>
+
             {image && (
                 <View style={{ position: 'relative' }}>
                     <Button title="Reset" onPress={() => refresh()} />
@@ -181,6 +187,7 @@ const CameraScreen = () => {
             )}
             <Button title="Take a photo" onPress={takePhoto} />
             <Button title="Select a photo" onPress={selectImage} />
+
         </View>
     );
 };
