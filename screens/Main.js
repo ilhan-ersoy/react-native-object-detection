@@ -27,7 +27,6 @@ const SettingsScreen = () => {
         try {
             const value = await AsyncStorage.getItem('USER');
             if (value !== null) {
-                // We have data!!
                 console.log(value);
             } else {
                 console.log("data doesnt exits.")

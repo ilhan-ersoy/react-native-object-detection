@@ -4,11 +4,13 @@ import {
     Text,
     Button,
     StyleSheet,
-    Image,
+    Image, TouchableOpacity,
 } from 'react-native';
+
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
+import { FancyAlert } from 'react-native-expo-fancy-alerts';
 
 
 const DetectedObjects = ({ objects, imageWidth, imageHeight }) => {
@@ -59,20 +61,15 @@ const DetectedObjects = ({ objects, imageWidth, imageHeight }) => {
 };
 
 const CameraScreen = () => {
-    const [image, setImage] = useState(null);
+    const [image, setImage] = useState();
     const [objects, setObjects] = useState([]);
     const [names, setNames] = useState([]);
     const user = useSelector(state => state.auth.user);
 
-    useEffect(() => {
-        if (objects && objects.length > 0) {
-            const objectNames = objects.map(object => object.name);
-            if (objectNames != null && names != null) {
-                setNames(prevNames => [...prevNames, ...objectNames]);
-            }
-        }
-
-    }, [objects]);
+    const [visible, setVisible] = React.useState(false);
+    const toggleAlert = React.useCallback(() => {
+        setVisible(!visible);
+    }, [visible]);
 
     const takePhoto = async () => {
         let result = await ImagePicker.launchCameraAsync({
@@ -85,39 +82,11 @@ const CameraScreen = () => {
 
         if (!result.cancelled) {
             setImage(`data:image/jpeg;base64,${result.base64}`);
-            const body = {
-                requests: [
-                    {
-                        image: {
-                            content: result.base64,
-                        },
-                        features: [
-                            {
-                                type: 'OBJECT_LOCALIZATION',
-                                maxResults: 50,
-                            },
-                        ],
-                    },
-                ],
-            };
-
-            axios
-                .post(
-                    'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDqiXgi_9gVoWlXHE7wZDPSBE40wwPtAmw',
-                    body
-                )
-                .then(response => {
-                    setObjects(response.data.responses[0].localizedObjectAnnotations);
-
-                })
-                .catch(error => {
-                    console.log(error);
-                });
+            detectObjects(result.base64);
         }
     };
 
     const selectImage = async () => {
-
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: false,
@@ -128,49 +97,98 @@ const CameraScreen = () => {
 
         if (!result.cancelled) {
             setImage(`data:image/jpeg;base64,${result.base64}`);
-            const body = {
-                requests: [
-                    {
-                        image: {
-                            content: result.base64,
-                        },
-                        features: [
-                            {
-                                type: 'OBJECT_LOCALIZATION',
-                                maxResults: 50,
-                            },
-                        ],
-                    },
-                ],
-            };
-
-            axios
-                .post(
-                    'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDqiXgi_9gVoWlXHE7wZDPSBE40wwPtAmw',
-                    body
-                )
-                .then(response => {
-                    setObjects(response.data.responses[0].localizedObjectAnnotations);
-
-                })
-                .catch(error => {
-                    console.log(error);
-                });
+            detectObjects(result.base64);
         }
     };
 
+    const detectObjects = (base64Image) => {
+        const body = {
+            requests: [
+                {
+                    image: {
+                        content: base64Image,
+                    },
+                    features: [
+                        {
+                            type: 'OBJECT_LOCALIZATION',
+                            maxResults: 50,
+                        },
+                    ],
+                },
+            ],
+        };
+
+        axios
+            .post(
+                'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDqiXgi_9gVoWlXHE7wZDPSBE40wwPtAmw',
+                body
+            )
+            .then(response => {
+                setObjects(response.data.responses[0].localizedObjectAnnotations);
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    };
 
     const refresh = () => {
         setImage(null)
+        setObjects([])
         setNames([])
     }
 
+    useEffect(() => {
+        if (objects) {
+            const extractedNames = objects.map((data) => data.name);
+            setNames(extractedNames);
+        }
+    }, [objects]);
 
-    console.log(names)
+    useEffect(() => {
+        if (image && names.length > 0) {
+            postDetection(image, names);
+        }
+    }, [image, names]);
+
+    const postDetection = (img, names) => {
+
+
+        var head = new Headers();
+
+        head.append(
+            "token",
+            user.token
+        )
+
+        head.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            "name": "Image",
+            "user_id": user.user_id,
+            "image": img,
+            "labels": [...names]
+        });
+
+        var requestOptions = {
+            method: 'POST',
+            headers: head,
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch("http://localhost:8080/object-detection", requestOptions)
+            .then(response => {
+                console.log(response)
+            })
+            .then(result => console.log(result))
+            .catch(error => {
+                alert("Bu img zaten daha once test edilmis!")
+                refresh()
+            });
+    }
 
     return (
         <View style={styles.container}>
-
             {image && (
                 <View style={{ position: 'relative' }}>
                     <Button title="Reset" onPress={() => refresh()} />
@@ -185,9 +203,28 @@ const CameraScreen = () => {
                     </View>
                 </View>
             )}
+
             <Button title="Take a photo" onPress={takePhoto} />
             <Button title="Select a photo" onPress={selectImage} />
 
+            <FancyAlert
+                visible={visible}
+                icon={<View style={{
+                    flex: 1,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor: 'red',
+                    borderRadius: 50,
+                    width: '100%',
+                }}><Text>🤓</Text></View>}
+                style={{ backgroundColor: 'white' }}
+            >
+                <Text style={{ marginTop: -16, marginBottom: 32 }}>
+                    Tespit Gerçekleşti!
+                </Text>
+                <Button title={"Ok"} onPress={() => setVisible(false)} />
+            </FancyAlert>
         </View>
     );
 };
