@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -8,93 +8,105 @@ import {
     TextInput,
     Image,
     TouchableOpacity,
-    LogBox
-} from 'react-native'
-import {LoginIcon, LoginLogo, PasswordIcon} from '../Icons'
-import Spinner from 'react-native-loading-spinner-overlay'
-import {useDispatch, useSelector} from 'react-redux'
-import {setUser} from '../Redux/authSlice'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import AnimatedLoader from 'react-native-animated-loader'
+    LogBox,
+    Alert,
+} from 'react-native';
+import { LoginIcon, LoginLogo, PasswordIcon } from '../Icons';
+import Spinner from 'react-native-loading-spinner-overlay';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser } from '../Redux/authSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import AnimatedLoader from 'react-native-animated-loader';
 
-const RegisterScreen = ({navigation}) => {
-    const [firstName, setFirstName] = useState('')
-    const [mail, setMail] = useState('')
-    const [password, setPassword] = useState('')
-    const [loading, setLoading] = useState(false)
-    const dispatch = useDispatch()
-    const [hidePassword, setHidePassword] = useState(false)
-
-    const user = useSelector(state => state.auth.user)
+const RegisterScreen = ({ navigation }) => {
+    const [firstName, setFirstName] = useState('');
+    const [mail, setMail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch();
+    const [hidePassword, setHidePassword] = useState(false);
 
     const cleanUp = () => {
-        setFirstName('')
-        setMail('')
-        setPassword('')
-    }
+        setFirstName('');
+        setMail('');
+        setPassword('');
+    };
 
-    // console.log('user status:', user)
-
-    const saveUserInStore = async user => {
+    const saveUserInStore = async (user) => {
         try {
-            await AsyncStorage.setItem('USER', user)
+            await AsyncStorage.setItem('USER', user);
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    }
+    };
 
     const handleSignup = () => {
-        setLoading(true)
-        let myHeaders = new Headers()
-        myHeaders.append('Content-Type', 'application/json')
+        if (!firstName || !mail || !password) {
+            Alert.alert('Hata', 'İsim, e-posta ve şifre boş bırakılamaz.');
+            return;
+        }
+
+        if (!validateEmail(mail)) {
+            Alert.alert('Hata', 'Geçerli bir e-posta adresi girin.');
+            return;
+        }
+
+        setLoading(true);
+        let myHeaders = new Headers();
+        myHeaders.append('Content-Type', 'application/json');
 
         let raw = JSON.stringify({
             name: firstName,
             email: mail,
             password: password,
-            user_type: 'USER'
-        })
+            user_type: 'USER',
+        });
 
         let requestOptions = {
             method: 'POST',
             headers: myHeaders,
             body: raw,
-            redirect: 'follow'
-        }
+            redirect: 'follow',
+        };
 
         fetch('http://localhost:8080/users/signup', requestOptions)
-            .then(response => response.text())
-            .then(result => {
-                console.log(result)
-                dispatch(setUser(result))
-                setLoading(false)
-                navigation.navigate('Login')
+            .then((response) => response.text())
+            .then((result) => {
+                console.log(result);
+                dispatch(setUser(result));
+                setLoading(false);
+                navigation.navigate('Login');
             })
-            .catch(error => {
-                // console.log('error', error)
-                setLoading(false)
-            })
-    }
+            .catch((error) => {
+                setLoading(false);
+                console.log('error', error);
+            });
+    };
+
+    const validateEmail = (email) => {
+        // Email validation logic
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={{flex: 1}}>
+            <View style={{ flex: 1 }}>
                 <View style={styles.img}>
-                    <LoginLogo/>
+                    <LoginLogo />
                     <Text
                         style={{
                             fontSize: 28,
                             color: '#fff',
                             marginVertical: 20,
-                            fontWeight: '900'
+                            fontWeight: '900',
                         }}
                     >
-                        REGISTER
+                        KAYIT OL
                     </Text>
                 </View>
                 <AnimatedLoader
                     visible={loading}
-                    overlayColor='#1e1e1e'
+                    overlayColor="#1e1e1e"
                     source={require('./loader.json')}
                     animationStyle={styles.lottie}
                     speed={2}
@@ -102,20 +114,20 @@ const RegisterScreen = ({navigation}) => {
                 <View style={styles.LoginContainer}>
                     <View>
                         <Text style={styles.label}>İsim</Text>
-                        <View style={{position: 'relative'}}>
+                        <View style={{ position: 'relative' }}>
                             <View
                                 style={{
                                     position: 'absolute',
                                     top: '25%',
                                     zIndex: 99,
-                                    right: 35
+                                    right: 35,
                                 }}
                             >
-                                <LoginIcon/>
+                                <LoginIcon />
                             </View>
                             <TextInput
                                 autoCapitalize={'none'}
-                                onChangeText={text => setFirstName(text)}
+                                onChangeText={(text) => setFirstName(text)}
                                 style={styles.input}
                                 value={firstName}
                                 placeholderTextColor={'#f2f2f2'}
@@ -124,16 +136,16 @@ const RegisterScreen = ({navigation}) => {
                     </View>
                     <AnimatedLoader
                         visible={loading}
-                        overlayColor='#1e1e1e'
+                        overlayColor="#1e1e1e"
                         source={require('./loader.json')}
                         animationStyle={styles.lottie}
                         speed={1.2}
                     ></AnimatedLoader>
                     <View>
-                        <Text style={styles.label}>Mail</Text>
+                        <Text style={styles.label}>E-Posta</Text>
                         <TextInput
                             autoCapitalize={'none'}
-                            onChangeText={text => setMail(text)}
+                            onChangeText={(text) => setMail(text)}
                             style={styles.input}
                             value={mail}
                             placeholderTextColor={'#f2f2f2'}
@@ -141,22 +153,24 @@ const RegisterScreen = ({navigation}) => {
                     </View>
                     <View>
                         <Text style={styles.label}>Şifre</Text>
-                        <View style={{position: 'relative'}}>
+                        <View style={{ position: 'relative' }}>
                             <View
                                 style={{
                                     position: 'absolute',
                                     top: '25%',
                                     zIndex: 99,
-                                    right: 37
+                                    right: 37,
                                 }}
                             >
-                                <TouchableOpacity onPress={()=>setHidePassword(!hidePassword)}>
-                                    <PasswordIcon/>
+                                <TouchableOpacity
+                                    onPress={() => setHidePassword(!hidePassword)}
+                                >
+                                    <PasswordIcon />
                                 </TouchableOpacity>
                             </View>
                             <TextInput
                                 autoCapitalize={'none'}
-                                onChangeText={text => setPassword(text)}
+                                onChangeText={(text) => setPassword(text)}
                                 style={styles.input}
                                 value={password}
                                 placeholderTextColor={'#f2f2f2'}
@@ -174,7 +188,7 @@ const RegisterScreen = ({navigation}) => {
                                 fontSize: 16,
                                 fontWeight: 'bold',
                                 justifyContent: 'center',
-                                color: '#fff'
+                                color: '#fff',
                             }}
                         >
                             KAYIT OL
@@ -190,7 +204,7 @@ const RegisterScreen = ({navigation}) => {
                                 fontSize: 16,
                                 fontWeight: 'bold',
                                 justifyContent: 'center',
-                                color: '#fff'
+                                color: '#fff',
                             }}
                         >
                             Hesabın var mı? Giriş yap
@@ -199,28 +213,27 @@ const RegisterScreen = ({navigation}) => {
                 </View>
             </View>
         </SafeAreaView>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#1e1e1e',
         paddingTop: 90,
-
     },
     img: {
         flex: 2,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 35
+        marginTop: 35,
     },
     LoginContainer: {
         flex: 8,
         paddingVertical: 12,
         paddingHorizontal: 6,
         marginTop: 20,
-        rowGap: 10
+        rowGap: 10,
     },
     input: {
         width: '90%',
@@ -230,16 +243,16 @@ const styles = StyleSheet.create({
         backgroundColor: '#3d3d3d',
         borderRadius: 15,
         color: '#fff',
-        shadowOffset: {width: -2, height: 4},
+        shadowOffset: { width: -2, height: 4 },
         shadowColor: '#171717',
         shadowOpacity: 0.2,
-        shadowRadius: 3
+        shadowRadius: 3,
     },
     label: {
         color: '#fff',
         fontSize: 18,
         marginLeft: 20,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
     },
     loginButton: {
         width: '90%',
@@ -249,13 +262,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#3d3d3d',
         borderRadius: 15,
         color: '#fff',
-        shadowOffset: {width: -2, height: 4},
+        shadowOffset: { width: -2, height: 4 },
         shadowColor: '#171717',
         shadowOpacity: 0.2,
         shadowRadius: 3,
         justifyContent: 'center',
-        alignItems: 'center'
-    }
-})
+        alignItems: 'center',
+    },
+});
 
-export default RegisterScreen
+export default RegisterScreen;

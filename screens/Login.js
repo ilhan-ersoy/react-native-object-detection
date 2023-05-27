@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -8,144 +8,145 @@ import {
     TextInput,
     Image,
     TouchableOpacity,
-    Alert
-} from 'react-native'
-import {LoginIcon, LoginLogo, PasswordIcon} from '../Icons'
-import {useDispatch, useSelector} from 'react-redux'
-import {setUser} from '../Redux/authSlice'
-import Spinner from 'react-native-loading-spinner-overlay'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import AnimatedLoader from 'react-native-animated-loader'
-import {useNavigation} from "@react-navigation/native";
+    Alert,
+} from 'react-native';
+import { LoginIcon, LoginLogo, PasswordIcon } from '../Icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser } from '../Redux/authSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import AnimatedLoader from 'react-native-animated-loader';
 
-const LoginScreen = ({navigation}) => {
-    const [mail, setMail] = useState('')
-    const [password, setPassword] = useState('')
-    const dispatch = useDispatch()
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState()
+const LoginScreen = ({ navigation }) => {
 
-    const [secureText, setSecureText] = useState(true)
 
-    const saveUserInStore = async user => {
+    const [mail, setMail] = useState('');
+    const [password, setPassword] = useState('');
+    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false);
+    const [secureText, setSecureText] = useState(true);
+
+    const saveUserInStore = async (user) => {
         try {
-            await AsyncStorage.setItem('USER', JSON.stringify(user))
+            await AsyncStorage.setItem('USER', JSON.stringify(user));
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    }
+    };
 
     const getUserFromStorage = async () => {
         try {
-            const value = await AsyncStorage.getItem('USER')
+            const value = await AsyncStorage.getItem('USER');
             if (value !== null) {
                 // We have data!!
-                return value
+                return value;
             }
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    }
+    };
 
-    const alert = (alertTitle, alertMessage) =>
-        Alert.alert(alertMessage, alertMessage, [
+    const showAlert = (alertTitle, alertMessage) => {
+        Alert.alert(alertTitle, alertMessage, [
             {
-                text: 'Cancel',
-                onPress: () => console.log('Cancel Pressed'),
-                style: 'cancel'
+                text: 'OK',
+                onPress: () => console.log('OK Pressed'),
             },
-            {text: 'OK', onPress: () => console.log('OK Pressed')}
-        ])
+        ]);
+    };
 
     useEffect(() => {
-        getUserFromStorage().then(r => {
+        getUserFromStorage().then((r) => {
             if (r) {
-                navigation.navigate('Main')
+                navigation.navigate('Main');
             }
-        })
-    }, [])
-
+        });
+    }, []);
 
     const handleLogin = () => {
-        setLoading(true)
-        let myHeaders = new Headers()
-        myHeaders.append('Content-Type', 'application/json')
+        if (!mail || !password) {
+            showAlert('Hata', 'E-posta ve şifre boş bırakılamaz.');
+            return;
+        }
+        setLoading(true);
+        let myHeaders = new Headers();
+        myHeaders.append('Content-Type', 'application/json');
 
         let raw = JSON.stringify({
             email: mail,
-            password: password
-        })
+            password: password,
+        });
 
-        console.log("mail", mail, "password", password)
-
-        // {
-        //   "email": "kylianmbappe10@gmail.com",
-        //     "password" : "france2018"
-        // }
         let requestOptions = {
             method: 'POST',
             headers: myHeaders,
             body: raw,
-            redirect: 'follow'
-        }
-        //http://localhost:8080/users/login
-        // {
-        //   "email": "kylianmbappe10@gmail.com",
-        //     "password" : "france2018"
-        // }
-        fetch('http://192.168.0.5:8080/users/login', requestOptions)
-            .then(response => response.json())
-            .then(result => {
+            redirect: 'follow',
+        };
+
+        fetch('http://localhost:8080/users/login', requestOptions)
+            .then((response) => response.json())
+            .then((result) => {
                 if (result.error) {
-                    console.log('error')
-                } else {
-                    dispatch(setUser(result))
-                    saveUserInStore(result).then(r => {
-                    })
+                    console.log(result.error);
+                    showAlert('Hata', 'E-posta veya şifre yanlış.');
                     setLoading(false)
-                    navigation.navigate('Main')
+                } else {
+                    dispatch(setUser(result));
+                    saveUserInStore(result).then((r) => {});
+                    setLoading(true);
+
+                    navigation.navigate('Main');
+                    setLoading(false)
                 }
             })
-            .catch(error => {
-                console.log('Login Error!')
+            .catch((error) => {
+                console.log('Login Error!');
                 console.log(error)
-            })
-    }
+                setLoading(false)
+            });
+    };
+
     return (
         <View style={styles.container}>
-            <View style={{flex: 1}}>
+            <View style={{ flex: 1 }}>
                 <View style={styles.img}>
-                    <LoginLogo/>
+                    <LoginLogo />
                     <Text
                         style={{
                             fontSize: 28,
                             color: '#fff',
                             marginVertical: 10,
-                            fontWeight: '900'
+                            fontWeight: '900',
                         }}
                     >
-                        LOGIN
+                        GİRİŞ YAP
                     </Text>
                 </View>
-
-
+                {/*<AnimatedLoader*/}
+                {/*    visible={loading}*/}
+                {/*    overlayColor='#1e1e1e'*/}
+                {/*    source={require('./loader.json')}*/}
+                {/*    animationStyle={styles.lottie}*/}
+                {/*    speed={2}*/}
+                {/*></AnimatedLoader>*/}
                 <View style={styles.LoginContainer}>
                     <View>
-                        <Text style={styles.label}>Mail</Text>
-                        <View style={{position: 'relative'}}>
+                        <Text style={styles.label}>E - Posta</Text>
+                        <View style={{ position: 'relative' }}>
                             <View
                                 style={{
                                     position: 'absolute',
                                     top: '25%',
                                     zIndex: 99,
-                                    right: 30
+                                    right: 30,
                                 }}
                             >
-                                <LoginIcon/>
+                                <LoginIcon />
                             </View>
                             <TextInput
                                 autoCapitalize={'none'}
-                                onChangeText={text => setMail(text)}
+                                onChangeText={(text) => setMail(text)}
                                 style={styles.input}
                                 value={mail}
                                 placeholderTextColor={'#f2f2f2'}
@@ -160,17 +161,19 @@ const LoginScreen = ({navigation}) => {
                                     position: 'absolute',
                                     top: '25%',
                                     zIndex: 99,
-                                    right: 30
+                                    right: 30,
                                 }}
                             >
-                                <TouchableOpacity onPress={() => setSecureText(!secureText)}>
-                                    <PasswordIcon/>
+                                <TouchableOpacity
+                                    onPress={() => setSecureText(!secureText)}
+                                >
+                                    <PasswordIcon />
                                 </TouchableOpacity>
                             </View>
 
                             <TextInput
                                 autoCapitalize={'none'}
-                                onChangeText={text => setPassword(text)}
+                                onChangeText={(text) => setPassword(text)}
                                 style={styles.input}
                                 value={password}
                                 placeholderTextColor={'#f2f2f2'}
@@ -188,7 +191,7 @@ const LoginScreen = ({navigation}) => {
                                 fontSize: 16,
                                 fontWeight: 'bold',
                                 justifyContent: 'center',
-                                color: '#fff'
+                                color: '#fff',
                             }}
                         >
                             GİRİŞ YAP
@@ -204,7 +207,7 @@ const LoginScreen = ({navigation}) => {
                                 fontSize: 16,
                                 fontWeight: 'bold',
                                 justifyContent: 'center',
-                                color: '#fff'
+                                color: '#fff',
                             }}
                         >
                             Henüz bir hesabın yok mu? Kayıt ol
@@ -213,8 +216,8 @@ const LoginScreen = ({navigation}) => {
                 </View>
             </View>
         </View>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -225,7 +228,7 @@ const styles = StyleSheet.create({
         flex: 3,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 55
+        marginTop: 55,
     },
     lottie: {},
     LoginContainer: {
@@ -234,7 +237,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         marginTop: 20,
         rowGap: 10,
-        marginRight: 10
+        marginRight: 10,
     },
     input: {
         width: '100%',
@@ -244,16 +247,16 @@ const styles = StyleSheet.create({
         backgroundColor: '#3d3d3d',
         borderRadius: 15,
         color: '#fff',
-        shadowOffset: {width: -2, height: 4},
+        shadowOffset: { width: -2, height: 4 },
         shadowColor: '#171717',
         shadowOpacity: 0.2,
-        shadowRadius: 3
+        shadowRadius: 3,
     },
     label: {
         color: '#fff',
         fontSize: 18,
         marginLeft: 15,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
     },
     loginButton: {
         width: '100%',
@@ -263,13 +266,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#3d3d3d',
         borderRadius: 15,
         color: '#fff',
-        shadowOffset: {width: -2, height: 4},
+        shadowOffset: { width: -2, height: 4 },
         shadowColor: '#171717',
         shadowOpacity: 0.2,
         shadowRadius: 3,
         justifyContent: 'center',
-        alignItems: 'center'
-    }
-})
+        alignItems: 'center',
+    },
+});
 
-export default LoginScreen
+export default LoginScreen;

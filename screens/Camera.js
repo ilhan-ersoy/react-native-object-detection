@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     View,
     Text,
@@ -6,16 +6,16 @@ import {
     StyleSheet,
     Image, TouchableOpacity,
 } from 'react-native';
-
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
-import { useSelector } from 'react-redux';
-import { FancyAlert } from 'react-native-expo-fancy-alerts';
+import {useSelector} from 'react-redux';
+import {FancyAlert} from 'react-native-expo-fancy-alerts';
+import { useFocusEffect } from '@react-navigation/native';
 
 
-const DetectedObjects = ({ objects, imageWidth, imageHeight }) => {
+const DetectedObjects = ({objects, imageWidth, imageHeight}) => {
     return (
-        <View style={{ position: 'absolute' }}>
+        <View style={{position: 'absolute'}}>
             {objects && objects.map((object, index) => {
                 const vertices = object.boundingPoly.normalizedVertices;
                 const x = vertices[0].x * imageWidth;
@@ -25,14 +25,14 @@ const DetectedObjects = ({ objects, imageWidth, imageHeight }) => {
                 let colors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple'];
 
                 if (isNaN(x) || isNaN(y) || isNaN(width) || isNaN(height)) {
-                    console.warn('Invalid coordinates or dimensions:', { x, y, width, height });
+                    console.warn('Invalid coordinates or dimensions:', {x, y, width, height});
                     return null;
                 }
 
                 let randomIndex = Math.floor(Math.random() * colors.length);
 
                 return (
-                    <View key={index} style={{ position: 'absolute', left: x, top: y }}>
+                    <View key={index} style={{position: 'absolute', left: x, top: y}}>
                         <View
                             style={{
                                 borderColor: colors[randomIndex],
@@ -60,7 +60,9 @@ const DetectedObjects = ({ objects, imageWidth, imageHeight }) => {
     );
 };
 
-const CameraScreen = () => {
+const CameraScreen = ({navigation}) => {
+
+
     const [image, setImage] = useState();
     const [objects, setObjects] = useState([]);
     const [names, setNames] = useState([]);
@@ -71,10 +73,12 @@ const CameraScreen = () => {
         setVisible(!visible);
     }, [visible]);
 
+
+
     const takePhoto = async () => {
         let result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: false,
+            allowsEditing: true,
             aspect: [4, 3],
             quality: 1,
             base64: true,
@@ -87,6 +91,12 @@ const CameraScreen = () => {
     };
 
     const selectImage = async () => {
+
+        if (image) {
+            setImage()
+            set
+        }
+
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: false,
@@ -151,17 +161,12 @@ const CameraScreen = () => {
     }, [image, names]);
 
     const postDetection = (img, names) => {
-
-
         var head = new Headers();
-
         head.append(
             "token",
             user.token
         )
-
         head.append("Content-Type", "application/json");
-
         var raw = JSON.stringify({
             "name": "Image",
             "user_id": user.user_id,
@@ -182,18 +187,30 @@ const CameraScreen = () => {
             })
             .then(result => console.log(result))
             .catch(error => {
-                alert("Bu img zaten daha once test edilmis!")
-                refresh()
+
             });
+
+        console.log(raw)
     }
+
+
+
+    useFocusEffect(
+        React.useCallback(() => {
+            setImage(null)
+            setObjects([])
+            setNames([])
+        }, [])
+    );
+
 
     return (
         <View style={styles.container}>
             {image && (
-                <View style={{ position: 'relative' }}>
-                    <Button title="Reset" onPress={() => refresh()} />
-                    <Image source={{ uri: image }} style={styles.image} />
-                    <DetectedObjects objects={objects} imageWidth={400} imageHeight={400} />
+                <View style={{position: 'relative'}}>
+                    {/*<Button title="Reset" onPress={() => refresh()}/>*/}
+                    <Image source={{uri: image}} style={styles.image}/>
+                    <DetectedObjects objects={objects} imageWidth={400} imageHeight={400}/>
                     <View style={styles.labelContainer}>
                         {names && names.map((name, index) => (
                             <Text key={index} style={styles.label}>
@@ -204,8 +221,24 @@ const CameraScreen = () => {
                 </View>
             )}
 
-            <Button title="Take a photo" onPress={takePhoto} />
-            <Button title="Select a photo" onPress={selectImage} />
+            {/*<Button title="Take a photo" onPress={takePhoto} />*/}
+            {/*<Button title="Select a photo" onPress={selectImage} />*/}
+
+            <TouchableOpacity onPress={() => takePhoto()}>
+                <View style={styles.buttons}>
+                    <Text style={styles.buttonText}>
+                        Fotoğraf Çek
+                    </Text>
+                </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => selectImage()}>
+                <View style={styles.buttons}>
+                    <Text style={styles.buttonText}>
+                        Fotoğraf Seç
+                    </Text>
+                </View>
+            </TouchableOpacity>
 
             <FancyAlert
                 visible={visible}
@@ -218,12 +251,12 @@ const CameraScreen = () => {
                     borderRadius: 50,
                     width: '100%',
                 }}><Text>🤓</Text></View>}
-                style={{ backgroundColor: 'white' }}
+                style={{backgroundColor: 'white'}}
             >
-                <Text style={{ marginTop: -16, marginBottom: 32 }}>
+                <Text style={{marginTop: -16, marginBottom: 32}}>
                     Tespit Gerçekleşti!
                 </Text>
-                <Button title={"Ok"} onPress={() => setVisible(false)} />
+                <Button title={"Ok"} onPress={() => setVisible(false)}/>
             </FancyAlert>
         </View>
     );
@@ -234,6 +267,7 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        backgroundColor: '#1e1e1e',
     },
     image: {
         width: 400,
@@ -250,6 +284,18 @@ const styles = StyleSheet.create({
         fontSize: 12,
         margin: 4,
     },
+    buttons: {
+        backgroundColor: "#202020",
+        margin: 5,
+        borderRadius: 10,
+        padding:5,
+    },
+    buttonText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 24,
+        marginVertical: 5
+    }
 });
 
 export default CameraScreen;

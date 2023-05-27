@@ -119,7 +119,7 @@ const HomeScreen = ({ navigation }) => {
 
             <View style={{ alignItems: "center" }}>
               <Text style={{ fontSize: 22, color: "white" }}>
-                Welcome, {user && user.name}
+                Hoşgeldin, {user && user.name}
               </Text>
             </View>
 
@@ -155,7 +155,7 @@ const HomeScreen = ({ navigation }) => {
                 Geçmiş Testlerim
               </Text>
               <Text style={{ color: "#fff", fontSize: 24, fontWeight: "bold" }}>
-                ({objects ? objects.length : "No Item"})
+                ({objects ? objects.length : "Test yok!"})
               </Text>
             </View>
           </View>
