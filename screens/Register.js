@@ -2,21 +2,16 @@ import React, { useState } from 'react';
 import {
     View,
     Text,
-    Button,
     StyleSheet,
     SafeAreaView,
     TextInput,
-    Image,
     TouchableOpacity,
-    LogBox,
     Alert,
 } from 'react-native';
 import { LoginIcon, LoginLogo, PasswordIcon } from '../Icons';
-import Spinner from 'react-native-loading-spinner-overlay';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser } from '../Redux/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import AnimatedLoader from 'react-native-animated-loader';
 
 const RegisterScreen = ({ navigation }) => {
     const [firstName, setFirstName] = useState('');
@@ -25,6 +20,7 @@ const RegisterScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
     const [hidePassword, setHidePassword] = useState(false);
+    const [secureText, setSecureText] = useState(false)
 
     const cleanUp = () => {
         setFirstName('');
@@ -69,7 +65,7 @@ const RegisterScreen = ({ navigation }) => {
             redirect: 'follow',
         };
 
-        fetch('http://localhost:8080/users/signup', requestOptions)
+        fetch('http://192.168.4.10:8080/users/signup', requestOptions)
             .then((response) => response.text())
             .then((result) => {
                 console.log(result);
@@ -97,20 +93,14 @@ const RegisterScreen = ({ navigation }) => {
                         style={{
                             fontSize: 28,
                             color: '#fff',
-                            marginVertical: 20,
+                            marginVertical: 10,
                             fontWeight: '900',
                         }}
                     >
                         KAYIT OL
                     </Text>
                 </View>
-                <AnimatedLoader
-                    visible={loading}
-                    overlayColor="#1e1e1e"
-                    source={require('./loader.json')}
-                    animationStyle={styles.lottie}
-                    speed={2}
-                ></AnimatedLoader>
+
                 <View style={styles.LoginContainer}>
                     <View>
                         <Text style={styles.label}>İsim</Text>
@@ -120,7 +110,7 @@ const RegisterScreen = ({ navigation }) => {
                                     position: 'absolute',
                                     top: '25%',
                                     zIndex: 99,
-                                    right: 35,
+                                    right: 30,
                                 }}
                             >
                                 <LoginIcon />
@@ -134,47 +124,53 @@ const RegisterScreen = ({ navigation }) => {
                             />
                         </View>
                     </View>
-                    <AnimatedLoader
-                        visible={loading}
-                        overlayColor="#1e1e1e"
-                        source={require('./loader.json')}
-                        animationStyle={styles.lottie}
-                        speed={1.2}
-                    ></AnimatedLoader>
                     <View>
-                        <Text style={styles.label}>E-Posta</Text>
-                        <TextInput
-                            autoCapitalize={'none'}
-                            onChangeText={(text) => setMail(text)}
-                            style={styles.input}
-                            value={mail}
-                            placeholderTextColor={'#f2f2f2'}
-                        />
-                    </View>
-                    <View>
-                        <Text style={styles.label}>Şifre</Text>
+                        <Text style={styles.label}>E - Posta</Text>
                         <View style={{ position: 'relative' }}>
                             <View
                                 style={{
                                     position: 'absolute',
                                     top: '25%',
                                     zIndex: 99,
-                                    right: 37,
+                                    right: 30,
+                                }}
+                            >
+                                <LoginIcon />
+                            </View>
+                            <TextInput
+                                autoCapitalize={'none'}
+                                onChangeText={(text) => setMail(text)}
+                                style={styles.input}
+                                value={mail}
+                                placeholderTextColor={'#f2f2f2'}
+                            />
+                        </View>
+                    </View>
+                    <View>
+                        <Text style={styles.label}>Şifre</Text>
+                        <View>
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    top: '25%',
+                                    zIndex: 99,
+                                    right: 30,
                                 }}
                             >
                                 <TouchableOpacity
-                                    onPress={() => setHidePassword(!hidePassword)}
+                                    onPress={() => setSecureText(!secureText)}
                                 >
                                     <PasswordIcon />
                                 </TouchableOpacity>
                             </View>
+
                             <TextInput
                                 autoCapitalize={'none'}
                                 onChangeText={(text) => setPassword(text)}
                                 style={styles.input}
                                 value={password}
                                 placeholderTextColor={'#f2f2f2'}
-                                secureTextEntry={hidePassword}
+                                secureTextEntry={secureText}
                             />
                         </View>
                     </View>
@@ -207,7 +203,7 @@ const RegisterScreen = ({ navigation }) => {
                                 color: '#fff',
                             }}
                         >
-                            Hesabın var mı? Giriş yap
+                            Hesabın var mı? Hemen Giriş Yap!
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -220,23 +216,24 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#1e1e1e',
-        paddingTop: 90,
     },
     img: {
-        flex: 2,
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 35,
+        marginTop: 55,
     },
+    lottie: {},
     LoginContainer: {
         flex: 8,
         paddingVertical: 12,
-        paddingHorizontal: 6,
+        paddingHorizontal: 10,
         marginTop: 20,
         rowGap: 10,
+        marginRight: 10,
     },
     input: {
-        width: '90%',
+        width: '100%',
         height: 48,
         paddingHorizontal: 14,
         margin: 10,
@@ -251,11 +248,11 @@ const styles = StyleSheet.create({
     label: {
         color: '#fff',
         fontSize: 18,
-        marginLeft: 20,
+        marginLeft: 15,
         fontWeight: 'bold',
     },
     loginButton: {
-        width: '90%',
+        width: '100%',
         height: 48,
         paddingHorizontal: 14,
         margin: 10,

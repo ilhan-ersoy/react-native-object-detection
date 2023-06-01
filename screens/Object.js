@@ -35,7 +35,7 @@ const ObjectScreen = ({route, navigation}) => {
             redirect: 'follow'
         };
 
-        fetch(`http://localhost:8080/object/get/${itemId}`, requestOptions)
+        fetch(`http://192.168.4.10:8080/object/get/${itemId}`, requestOptions)
             .then(response => response.json())
             .then(result => {
                 setContent(result)

@@ -11,6 +11,7 @@ import axios from 'axios';
 import {useSelector} from 'react-redux';
 import {FancyAlert} from 'react-native-expo-fancy-alerts';
 import { useFocusEffect } from '@react-navigation/native';
+import AnimatedLoader from "react-native-animated-loader";
 
 
 const DetectedObjects = ({objects, imageWidth, imageHeight}) => {
@@ -18,10 +19,13 @@ const DetectedObjects = ({objects, imageWidth, imageHeight}) => {
         <View style={{position: 'absolute'}}>
             {objects && objects.map((object, index) => {
                 const vertices = object.boundingPoly.normalizedVertices;
+
                 const x = vertices[0].x * imageWidth;
                 const y = vertices[0].y * imageHeight;
+
                 const width = (vertices[2].x - vertices[0].x) * imageWidth;
                 const height = (vertices[2].y - vertices[0].y) * imageHeight;
+
                 let colors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple'];
 
                 if (isNaN(x) || isNaN(y) || isNaN(width) || isNaN(height)) {
@@ -73,6 +77,7 @@ const CameraScreen = ({navigation}) => {
         setVisible(!visible);
     }, [visible]);
 
+    const [loading, setLoading] = useState(false) // loading status
 
 
     const takePhoto = async () => {
@@ -91,12 +96,9 @@ const CameraScreen = ({navigation}) => {
     };
 
     const selectImage = async () => {
-
-        if (image) {
-            setImage()
-            set
-        }
-
+        setImage(null)
+        setObjects([])
+        setNames([])
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: false,
@@ -161,36 +163,35 @@ const CameraScreen = ({navigation}) => {
     }, [image, names]);
 
     const postDetection = (img, names) => {
-        var head = new Headers();
+        console.log(names)
+        let head = new Headers();
         head.append(
             "token",
             user.token
         )
         head.append("Content-Type", "application/json");
-        var raw = JSON.stringify({
+        let raw = JSON.stringify({
             "name": "Image",
             "user_id": user.user_id,
             "image": img,
             "labels": [...names]
         });
 
-        var requestOptions = {
+        let requestOptions = {
             method: 'POST',
             headers: head,
             body: raw,
             redirect: 'follow'
         };
 
-        fetch("http://localhost:8080/object-detection", requestOptions)
+        fetch("http://192.168.4.10:8080/object-detection", requestOptions)
             .then(response => {
                 console.log(response)
             })
-            .then(result => console.log(result))
+            .then(result => console.log("result:", result))
             .catch(error => {
-
+                console.log(error)
             });
-
-        console.log(raw)
     }
 
 
@@ -200,9 +201,14 @@ const CameraScreen = ({navigation}) => {
             setImage(null)
             setObjects([])
             setNames([])
+            // console.log(user)
         }, [])
     );
 
+
+    console.log = () => {};
+    console.error = () => {};
+    console.warn = () => {};
 
     return (
         <View style={styles.container}>
@@ -239,6 +245,16 @@ const CameraScreen = ({navigation}) => {
                     </Text>
                 </View>
             </TouchableOpacity>
+
+            {/*{*/}
+            {/*   <AnimatedLoader*/}
+            {/*        visible={true}*/}
+            {/*        overlayColor='#1e1e1e'*/}
+            {/*        source={require('./loader.json')}*/}
+            {/*        animationStyle={styles.lottie}*/}
+            {/*        speed={2}*/}
+            {/*    />*/}
+            {/*}*/}
 
             <FancyAlert
                 visible={visible}

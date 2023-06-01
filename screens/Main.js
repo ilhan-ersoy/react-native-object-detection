@@ -54,16 +54,16 @@ const MainScreen = ({ navigation }) => {
                     tabBarShowLabel:false,
                     headerShown:false,
                     tabBarStyle: {
-                    position: 'absolute',
-                    backgroundColor:"#3D3D3D",
-                    borderRadius:10,
-                    borderColor:"#1e1e1e",
-                    bottom:20,
-                    borderWidth:0,
-                    elevation: 0,
-                    borderTopWidth:0,
-                    height:60,
-                    marginHorizontal:20
+                        position: 'absolute',
+                        backgroundColor: "#3D3D3D",
+                        borderRadius: 10,
+                        borderColor: "#1e1e1e",
+                        bottom: 20,
+                        borderWidth: 0,
+                        elevation: 0,
+                        borderTopWidth: 0,
+                        height: 60,
+                        marginHorizontal: 20
             },
             }}>
             <Tab.Screen

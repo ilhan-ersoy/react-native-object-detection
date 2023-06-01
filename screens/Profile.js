@@ -8,6 +8,7 @@ import {
 } from 'react-native'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import {QuitApp} from "../Icons";
 
 const ProfileScreen = ({ navigation }) => {
   const Quit = async () => {
@@ -26,6 +27,9 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.button}>
             Çıkış Yap
           </Text>
+          <View >
+            <QuitApp size={90} />
+          </View>
         </View>
       </TouchableOpacity>
     </SafeAreaView>
@@ -44,6 +48,11 @@ const styles = StyleSheet.create({
   button: {
     justifyContent:"center",
     textAlign:"center",
-    margin:60
+    margin:60,
+    alignItems:"center",
+    flexDirection:"column",
+    color:"#fff",
+    fontSize:28,
+    fontWeight:"bold"
   }
 })

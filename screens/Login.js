@@ -58,7 +58,8 @@ const LoginScreen = ({ navigation }) => {
     useEffect(() => {
         getUserFromStorage().then((r) => {
             if (r) {
-                navigation.navigate('Main');
+                console.log(r)
+                // navigation.navigate('Main');
             }
         });
     }, []);
@@ -84,7 +85,7 @@ const LoginScreen = ({ navigation }) => {
             redirect: 'follow',
         };
 
-        fetch('http://localhost:8080/users/login', requestOptions)
+        fetch('http://192.168.4.10:8080/users/login', requestOptions)
             .then((response) => response.json())
             .then((result) => {
                 if (result.error) {
@@ -97,6 +98,7 @@ const LoginScreen = ({ navigation }) => {
                     setLoading(true);
 
                     navigation.navigate('Main');
+                    console.log(result)
                     setLoading(false)
                 }
             })
@@ -108,7 +110,7 @@ const LoginScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <View style={{ flex: 1 }}>
                 <View style={styles.img}>
                     <LoginLogo />
@@ -215,7 +217,7 @@ const LoginScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 

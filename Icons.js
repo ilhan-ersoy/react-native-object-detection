@@ -300,6 +300,46 @@ function DeleteIcon({size}) {
     )
 }
 
+
+function ClearAllIcon({size}) {
+    return (
+        <Svg
+            width={size}
+            height={size}
+            viewBox="0 0 20 20"
+            fill="#fff"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <Path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M7.25 2.75a2.75 2.75 0 015.5 0v.166c2.385.29 4.613.952 6.578 1.91a.75.75 0 01-.657 1.348C16.18 4.96 13.204 4.25 10 4.25c-3.204 0-6.18.71-8.672 1.924a.75.75 0 11-.657-1.348c1.966-.958 4.194-1.62 6.579-1.91V2.75zm9.015 13.533a4 4 0 01-3.99 3.715h-4.55a4 4 0 01-3.99-3.715l-.689-9.635C5.164 5.91 7.52 5.498 10 5.498s4.836.412 6.954 1.15l-.689 9.635zM8.75 8.998a.75.75 0 10-1.5 0v6a.75.75 0 101.5 0v-6zm3.25-.75a.75.75 0 01.75.75v6a.75.75 0 11-1.5 0v-6a.75.75 0 01.75-.75z"
+                fill="#fff"
+            />
+        </Svg>
+    )
+}
+
+function QuitApp({size}) {
+    return (
+        <Svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="#fff"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <Path
+                d="M12 7v2m3-1a5 5 0 11-6 0M6 2h12a4 4 0 014 4v12a4 4 0 01-4 4H6a4 4 0 01-4-4V6a4 4 0 014-4z"
+                stroke="#28303F"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+            />
+        </Svg>
+    )
+}
+
+
 export {
     LoginLogo,
     LoginIcon,
@@ -317,6 +357,8 @@ export {
     CameraFocused,
     SearchIcon,
     Detected,
-    DeleteIcon
+    DeleteIcon,
+    ClearAllIcon,
+    QuitApp
 }
 
